@@ -85,11 +85,11 @@ void drawCube(float posX, float posY, float posZ, float x, float y, float z)
 void drawCube(Cuboid* cuboid)
 {
     float posX =   static_cast<float>(cuboid->getDisplacement()[0]);
-    float posY =   static_cast<float>(cuboid->getDisplacement()[0]);
-    float posZ =   static_cast<float>(cuboid->getDisplacement()[0]);
+    float posY =   static_cast<float>(cuboid->getDisplacement()[1]);
+    float posZ =   static_cast<float>(cuboid->getDisplacement()[2]);
     float x =      static_cast<float>(cuboid->getSizes()[0]);
-    float y =      static_cast<float>(cuboid->getSizes()[0]);
-    float z =      static_cast<float>(cuboid->getSizes()[0]);
+    float y =      static_cast<float>(cuboid->getSizes()[1]);
+    float z =      static_cast<float>(cuboid->getSizes()[2]);
 	drawCube(posX, posY, posZ, x, y, z);
 }
 
@@ -148,7 +148,24 @@ void display(void)
 	gluLookAt(eye_x, eye_y, -g_fViewDistance, origin_x, origin_y, 0, 0, 1, 0);
 
 	// Set up the stationary light
-	glLightfv(GL_LIGHT0, GL_POSITION, g_lightPos);
+    GLfloat vec1[4] = {0, 100, 0, 1};
+    GLfloat rot1[3] = {0, -1, 0};
+
+    GLfloat vec2[4] = {0, -100, 0, 1};
+    GLfloat rot2[3] = {0, 1, 0};
+
+    GLfloat intensity[4] = {1, 1, 1, 1};
+
+    glLightfv(GL_LIGHT0, GL_POSITION, vec1);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, rot1);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, intensity);
+
+
+	glLightfv(GL_LIGHT1, GL_POSITION, vec2);
+    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, rot2);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, intensity);
+
+
 
     // Render the scene
 	RenderObjects();
@@ -179,7 +196,9 @@ void InitGraphics(void)
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-	glEnable(GL_NORMALIZE);
+    glEnable(GL_LIGHT1);
+    glEnable(GL_LIGHT1);
+    glEnable(GL_NORMALIZE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -194,13 +213,13 @@ void MouseButton(int button, int state, int x, int y)
 
 	if (button == GLUT_LEFT_BUTTON)
 	{
-		g_bButtonLDown = (state == GLUT_DOWN) ? true : false;
+		g_bButtonLDown = state == GLUT_DOWN;
 		g_yClick = y + (int)rotation_y;
 		g_xClick = x - (int)rotation_x;
 	}
 	else if (button == GLUT_RIGHT_BUTTON)
 	{
-		g_bButtonRDown = (state == GLUT_DOWN) ? true : false;
+		g_bButtonRDown = state == GLUT_DOWN;
 		g_yClick = y - (int)(ZOOM_SPEED * g_fViewDistance);
 	}
 }
@@ -255,17 +274,17 @@ void Keyboard(unsigned char key, int x, int y)
             g_fViewDistance -= step;
             break;
         case '1':
-            if (!(*solvedCuboids)[1].empty())
+            if (!(*solvedCuboids)[0].empty())
             {
-                allCubs = &(*solvedCuboids)[1];
+                allCubs = &(*solvedCuboids)[0];
                 allCubsN = allCubs->size();
                 RenderObjects();
             }
             break;
         case '2':
-            if (!(*solvedCuboids)[0].empty())
+            if (!(*solvedCuboids)[1].empty())
             {
-                allCubs = &(*solvedCuboids)[0];
+                allCubs = &(*solvedCuboids)[1];
                 allCubsN = allCubs->size();
                 RenderObjects();
             }
@@ -285,9 +304,6 @@ void Keyboard(unsigned char key, int x, int y)
 void Scene::start(int argc, char** argv, CuboidContainer* otherCuboidContainer,
                   std::vector<std::vector<Cuboid*> >* emplacedCuboids)
 {
-    for(auto& x : *emplacedCuboids) {
-        std::cout<<x.size()<<std::endl;
-    }
  	g_lightPos[0] = static_cast<float>((-1)*otherCuboidContainer->getSizes()[0]*2);
     g_lightPos[2] = static_cast<float>((-1)*otherCuboidContainer->getSizes()[1]*2);
 	cuboidContainer = otherCuboidContainer;
